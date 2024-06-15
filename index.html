@@ -94,19 +94,19 @@
 
         // Загрузка значения счетчика из localStorage
         function loadCounter() {
-            // const savedCount = localStorage.getItem('count');
-            // if (savedCount) {
-            //     count = parseInt(savedCount, 10);
-            //     counterElement.innerText = count;
-            // }
+             const savedCount = localStorage.getItem('count');
+             if (savedCount) {
+                 count = parseInt(savedCount, 10);
+                counterElement.innerText = count;
+               }
 
-            // const savedBoostLevel = localStorage.getItem('boostLevel');
-            // if (savedBoostLevel) {
-            //     boostLevel = parseInt(savedBoostLevel, 10);
-            //     clickValue = boostLevel; // Восстанавливаем значение клика
-            //     bagClickValue = boostLevel * 10; // Восстанавливаем значение клика по мешку
-            //     updateBoost();
-            // }
+             const savedBoostLevel = localStorage.getItem('boostLevel');
+             if (savedBoostLevel) {
+                 boostLevel = parseInt(savedBoostLevel, 10);
+                clickValue = boostLevel; // Восстанавливаем значение клика
+                 bagClickValue = boostLevel * 10; // Восстанавливаем значение клика по мешку
+                updateBoost();
+             }
         }
 
         // Сохранение значения счетчика в localStorage
