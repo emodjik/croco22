@@ -3,197 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Croco</title>
+    <title>Шахматы</title>
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
             font-family: Arial, sans-serif;
-            background: #000;
-            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
         }
-        .counter {
-            position: absolute;
-            top: 20px;
+
+        #chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 2px;
+            width: 80vmin;
+            height: 80vmin;
+            background-color: #333;
+        }
+
+        .light {
+            background-color: #f0d9b5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dark {
+            background-color: #b58863;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cell {
             width: 100%;
+            height: 100%;
+            font-size: 2rem;
             text-align: center;
-            font-size: 30px;
-            color: #ff6347;
-            z-index: 1;
-        }
-        .red-line {
-            position: absolute;
-            top: 90px;
-            width: 100%;
-            height: 5px;
-            background-color: #ff6347;
-        }
-        .timer-emoji {
-            position: absolute;
-            top: 50px;
-            left: 20px;
-            font-size: 30px;
-        }
-        .falling-money {
-            position: absolute;
-            font-size: 40px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s, scale 0.1s ease-in-out, background-color 0.1s ease-in-out;
-        }
-        .falling-money:active {
-            transform: scale(1.2) translateY(-10px);
-            box-shadow: 0 0 20px rgba(255, 69, 0, 0.7);
-            background-color: #ff6347;
-        }
-        .boost {
-            position: absolute;
-            top: 105px; /* Позиция под полосой */
-            left: 20px;
-            font-size: 24px;
-            color: #ff6347;
-            z-index: 2; /* Убедимся, что буст будет выше остальных элементов */
+            line-height: 1.5;
             cursor: pointer;
         }
-        .clicker-img {
-            width: 200px;
-            height: 200px;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-radius: 50%;
-            border: none; /* Убираем границу */
-            box-shadow: 0 0 10px rgba(255, 99, 71, 0.5);
+
+        .cell:hover {
+            background-color: rgba(0, 0, 0, 0.1);
         }
-        .clicker-img:active {
-            transform: translateY(-10px);
-            box-shadow: 0 0 15px rgba(255, 69, 0, 0.7);
+
+        /* Media Queries for different screen sizes */
+        @media (max-width: 768px) {
+            #chessboard {
+                width: 90vmin;
+                height: 90vmin;
+            }
+            .cell {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #chessboard {
+                width: 95vmin;
+                height: 95vmin;
+            }
+            .cell {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="counter" id="counter">0</div>
-    <div class="red-line"></div>
-    <div class="timer-emoji" id="timer">🕰️ 10s</div>
-    <img src="img/1254_oooo,plus-photoaidcom-cropped.png" alt="Clicker" class="clicker-img" onclick="incrementCounter()">
-    <div class="boost" id="boost" onclick="upgradeBoost()">⚡ 1/200</div>
 
-    <script>
-        let count = 0;  // Инициализация счетчика
-        let timeLeft = 10; // Таймер начинается с 15 секунд
-        const counterElement = document.getElementById('counter');  // Получаем элемент счетчика по ID
-        const timerElement = document.getElementById('timer');  // Получаем элемент таймера по ID
-        const boostElement = document.getElementById('boost');  // Получаем элемент буста по ID
-        let boostLevel = 1;  // Инициализация уровня буста
-        let clickValue = 1; // Начальное значение клика
-        let bagClickValue = 10; // Начальное значение клика по мешку
-        const boostCosts = [200, 500, 5000, 15000, 25000, 45000, 65000, 85000, 105000, 125000, 145000, 165000, 185000, 205000, 225000, 245000, 265000, 285000, 305000, 325000, 345000, 365000, 385000, 405000, 425000, 445000, 465000, 485000, 505000, 525000, 545000, 565000, 585000, 605000, 625000, 645000, 665000, 685000, 705000, 725000, 745000, 765000, 785000, 805000, 825000, 845000, 865000, 885000, 905000, 925000, 945000, 965000, 985000, 1000000];  // Стоимость для каждого уровня буста
+<div id="chessboard"></div>
 
-        // Загрузка значения счетчика из localStorage
-        function loadCounter() {
-             const savedCount = localStorage.getItem('count');
-             if (savedCount) {
-                 count = parseInt(savedCount, 10);
-                counterElement.innerText = count;
-               }
+<script>
+    // Инициализация шахматной доски с фигурами
+    const board = [
+        ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'], // черные фигуры
+        ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'], // черные пешки
+        ['.', '.', '.', '.', '.', '.', '.', '.'], // пустые клетки
+        ['.', '.', '.', '.', '.', '.', '.', '.'], // пустые клетки
+        ['.', '.', '.', '.', '.', '.', '.', '.'], // пустые клетки
+        ['.', '.', '.', '.', '.', '.', '.', '.'], // пустые клетки
+        ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'], // белые пешки
+        ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖']  // белые фигуры
+    ];
 
-             const savedBoostLevel = localStorage.getItem('boostLevel');
-             if (savedBoostLevel) {
-                 boostLevel = parseInt(savedBoostLevel, 10);
-                clickValue = boostLevel; // Восстанавливаем значение клика
-                 bagClickValue = boostLevel * 10; // Восстанавливаем значение клика по мешку
-                updateBoost();
-             }
+    // Функция для рендеринга шахматной доски
+    function renderBoard() {
+        const boardElement = document.getElementById('chessboard');
+        boardElement.innerHTML = ''; // очищаем доску перед рендерингом
+
+        // создаем клетки для доски
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                const piece = board[row][col];
+
+                // если клетка не пустая, выводим символ фигуры
+                cell.textContent = piece === '.' ? '' : piece;
+
+                // определяем цвет клетки
+                cell.classList.add((row + col) % 2 === 0 ? 'light' : 'dark');
+
+                // добавляем событие для выбора клетки
+                cell.addEventListener('click', () => handleCellClick(row, col));
+
+                boardElement.appendChild(cell);
+            }
         }
+    }
 
-        // Сохранение значения счетчика в localStorage
-        function saveCounter() {
-            // localStorage.setItem('count', count);
-        }
+    // Переменная для хранения выбранной фигуры
+    let selectedPiece = null;
+    let selectedRow = null;
+    let selectedCol = null;
 
-        // Сохранение уровня буста в localStorage
-        function saveBoostLevel() {
-            // localStorage.setItem('boostLevel', boostLevel);
-        }
+    // Функция для обработки клика по клетке
+    function handleCellClick(row, col) {
+        const piece = board[row][col];
 
-        function incrementCounter() {
-            count += clickValue;  // Увеличиваем счетчик на текущее значение клика
-            counterElement.innerText = count;  // Обновляем текст счетчика
-            saveCounter();  // Сохраняем значение счетчика
-        }
-
-        function updateTimer() {
-            if (timeLeft > 0) {
-                timeLeft--;  // Уменьшаем время на 1 секунду
-                timerElement.innerText = `🕰️ ${timeLeft}s`;  // Обновляем текст таймера
+        if (selectedPiece) {
+            // Если фигура уже выбрана, пытаемся переместить её
+            if (isValidMove(selectedRow, selectedCol, row, col)) {
+                // Перемещаем фигуру
+                board[row][col] = selectedPiece;
+                board[selectedRow][selectedCol] = '.';
+                selectedPiece = null;  // сбрасываем выбранную фигуру
+                renderBoard();  // обновляем доску
             } else {
-                timeLeft = 10;  // Сбросить время на 15 секунд
-                timerElement.innerText = `🕰️ 10s`;  // Обновить отображение таймера
-                createFallingMoney();  // Создаем мешки с деньгами сразу после истечения времени
+                // Если ход невалидный, сбрасываем выбранную фигуру
+                selectedPiece = null;
+                renderBoard();  // обновляем доску
+            }
+        } else {
+            // Если фигура еще не выбрана, выбираем её
+            if (piece !== '.') {
+                selectedPiece = piece;
+                selectedRow = row;
+                selectedCol = col;
+                renderBoard();  // обновляем доску
             }
         }
+    }
 
-        function createFallingMoney() {
-            const numberOfBags = Math.floor(Math.random() * 10) + 5;  // Определяем количество мешков от 5 до 15
-            for (let i = 0; i < numberOfBags; i++) {
-                dropMoneyBag();
-            }
+    // Функция для проверки валидности хода (простая версия)
+    function isValidMove(fromRow, fromCol, toRow, toCol) {
+        // Пока что проверяем только базовое условие: фигура не может двигаться на клетку с такой же фигурой
+        if (board[toRow][toCol] === '.') {
+            return true;
         }
+        return false;
+    }
 
-        function dropMoneyBag() {
-            const moneyBag = document.createElement('div');  // Создаем новый элемент для мешка с деньгами
-            moneyBag.className = 'falling-money';  // Устанавливаем класс для стилей
-            moneyBag.textContent = '💰';  // Устанавливаем текст элемента
-            moneyBag.style.left = `${Math.floor(Math.random() * (window.innerWidth - 40))}px`;  // Положение мешка по горизонтали
-            moneyBag.style.top = '0px';  // Начальная позиция мешка
-            document.body.appendChild(moneyBag);  // Добавляем элемент на страницу
+    // Инициализация игры
+    renderBoard();
+</script>
 
-            const fallSpeed = Math.floor(Math.random() * 3000) + 4000;  // Определяем скорость падения (от 4000 до 7000 мс)
-            moneyBag.style.transition = `top ${fallSpeed}ms linear`;  // Устанавливаем анимацию для падения
-
-            moneyBag.style.top = `${window.innerHeight - 100}px`;  // Устанавливаем конечную позицию мешка
-
-            setTimeout(() => {
-                if (moneyBag.parentElement) {
-                    moneyBag.parentElement.removeChild(moneyBag);  // Удаляем мешок после окончания анимации
-                }
-            }, fallSpeed);
-
-            moneyBag.addEventListener('click', () => {
-                count += bagClickValue;  // Увеличиваем счетчик на текущее значение клика по мешку
-                counterElement.innerText = count;  // Обновляем текст счетчика
-                saveCounter();  // Сохраняем значение счетчика
-                if (moneyBag.parentElement) {
-                    moneyBag.parentElement.removeChild(moneyBag);  // Удаляем мешок после клика
-                }
-            });
-        }
-
-        function updateBoost() {
-            boostElement.innerText = `⚡ ${boostLevel}/${boostCosts[boostLevel - 1]}`;
-        }
-
-        function upgradeBoost() {
-            if (boostLevel < boostCosts.length && count >= boostCosts[boostLevel - 1]) {
-                count -= boostCosts[boostLevel - 1];  // Уменьшаем счетчик на стоимость буста
-                boostLevel++;  // Увеличиваем уровень буста
-                clickValue = boostLevel; // Увеличиваем значение клика
-                bagClickValue = boostLevel * 10; // Увеличиваем значение клика по мешку
-                updateBoost();  // Обновляем отображение буста
-                counterElement.innerText = count;  // Обновляем текст счетчика
-                saveCounter();  // Сохраняем значение счетчика
-                saveBoostLevel();  // Сохраняем уровень буста
-            }
-        }
-
-        // Загрузка данных при старте страницы
-        loadCounter();
-
-        // Интервал для обновления таймера каждую секунду
-        setInterval(updateTimer, 1000);
-    </script>
 </body>
 </html>
