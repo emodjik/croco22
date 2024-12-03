@@ -20,7 +20,7 @@
             display: grid;
             grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr);
-            gap: 0; /* Убираем gap между клетками */
+            gap: 0;
             width: 80vmin;
             height: 80vmin;
             background-color: #333;
@@ -30,8 +30,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 100%;  /* Фиксируем размер клеток */
-            height: 100%; /* Фиксируем размер клеток */
+            width: 100%;
+            height: 100%;
         }
 
         .light {
@@ -48,7 +48,7 @@
             align-items: center;
             width: 100%;
             height: 100%;
-            font-size: 3rem; /* Увеличиваем размер фигуры */
+            font-size: 3rem;
             cursor: pointer;
         }
 
@@ -63,7 +63,7 @@
                 height: 90vmin;
             }
             .cell {
-                font-size: 2.5rem; /* Уменьшаем размер на устройствах с меньшим экраном */
+                font-size: 2.5rem;
             }
         }
 
@@ -73,7 +73,7 @@
                 height: 95vmin;
             }
             .cell {
-                font-size: 2rem; /* Еще меньше на телефонах */
+                font-size: 2rem;
             }
         }
     </style>
@@ -154,13 +154,33 @@
         }
     }
 
-    // Функция для проверки валидности хода (простая версия)
+    // Функция для проверки валидности хода пешки
     function isValidMove(fromRow, fromCol, toRow, toCol) {
-        // Пока что проверяем только базовое условие: фигура не может двигаться на клетку с такой же фигурой
-        if (board[toRow][toCol] === '.') {
-            return true;
+        const piece = board[fromRow][fromCol];
+        const direction = piece === '♙' ? -1 : 1; // белые пешки двигаются вверх, черные — вниз
+
+        // Проверяем, если это первый ход пешки
+        if (fromCol === toCol && (fromRow === 6 || fromRow === 1)) {
+            if (toRow === fromRow + 2 * direction && board[toRow][toCol] === '.') {
+                return true; // первый ход: пешка может двигаться на две клетки
+            }
         }
-        return false;
+
+        // Проверяем обычный ход на одну клетку вперед
+        if (fromCol === toCol && board[toRow][toCol] === '.') {
+            if (toRow === fromRow + direction) {
+                return true; // ход на одну клетку вперед
+            }
+        }
+
+        // Проверяем взятие по диагонали
+        if (Math.abs(fromCol - toCol) === 1 && toRow === fromRow + direction) {
+            if (board[toRow][toCol] !== '.' && board[toRow][toCol] !== piece) {
+                return true; // взятие по диагонали
+            }
+        }
+
+        return false; // если ни одно условие не выполнено
     }
 
     // Инициализация игры
